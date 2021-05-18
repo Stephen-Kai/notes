@@ -59,6 +59,7 @@ url 字符串处理: query-string
 动画: react-transition-group
 请求: umi-request
 获取浏览器版本信息: detect-browser(原理 userAgent 代理字符串)
+cookies 设置: browser-cookies
 
 ## 兼容
 
@@ -425,4 +426,40 @@ npx cross-env VERSION=0105-store UMI_ENV=qa-remote umi build
 在开发店铺认证需求时, 踩了一个坑
 首先页面有四个 stepper, 也就是四个表单认证页面, 点击下一页进行校验, 当有错误项时进行提示, 没有错误就展示下一页, 开发时很顺利, 部署上去后点击下一页就报错, 然后使用 whitle 模拟生产环境调试时就发现, 是 react-hook-form 表单验证插件的 trigger 方法报错, 这是一个用来触发校验的方法, 他是根据注册的表单 key 去找表单的 ref 获取值进行校验, 但是认证页面其实有很多表单是动态展示的, 也就是有些表单其实是隐藏的, 有可能注册的 key 对于的表单是不存在的, 那 react-hook-form 找不到就报错了, 然后就进行了对应的修改, 改成了四个表单, 使用每个表单的 submit 方法解决。
 
-##
+## 登录
+
+方案: Token 登录
+Token 是服务端生成的一串字符串，以作为客户端请求的一个令牌。当第一次登录后，服务器会生成一个 Token 并返回给客户端，客户端后续访问时，只需带上这个 Token 即可完成身份认证。
+
+可参考: https://zhuanlan.zhihu.com/p/155890203
+
+好处:
+缺点:
+
+首先用户请求地址, 比如说域名是 test.com, 由于是第一次登录, 用户会来到登录页
+
+用户输入账号, 密码, 服务端进行 账号 / 密码验证, 如果失败则登录失败, 如果成功, 则返回 authToken 和 到期时间
+
+客户端获取到了 authToken 和 到期时间, 保存在 cookie 中(https://www.npmjs.com/package/browser-cookies), 之后的每次请求都会在请求头中加上 authToken 字段, 后端会进行验证, 如果验证无效则会踢回登录页(当然需要用户信息的页面前端也会做一层 loginWrapper 处理, 后面再说)
+
+然后进行跳转选择店铺页面, 在选择店铺页面可以创建新的店铺或者选择店铺
+
+可以进行选择店铺, 用 saasId 标识, 选择好店铺之后要给后端发送请求, 选择了哪个店铺, 然后跳转到概览页面, 概览页面会被一层默认布局包裹(umi 支持的 component), 默认布局中会有通用的侧边栏啊, 头部, 底部啊, ErrorBoundary 错误边界处理啊等, 最外层是 loginWrapper, 会进行鉴权, 查询用户信息的操作。
+
+## loginWrapper
+
+context 方案
+
+在 loginWrapper 中会获取 cookie 中保存的 authToken, 如果没有, 就会跳转到登录页, 如果有, 就会获取用户信息, 用户信息中会有用户的基础信息, 可访问的菜单, 以及权限位等信息, 保存在 LoginContext 中
+
+## 全局错误处理
+
+ErrorBoundary
+
+## 全局共享数据, 如 空图片 等设置
+
+context 方案
+
+## 权限方案
+
+权限 code 判断
