@@ -1,0 +1,428 @@
+# B 端(01-admin):
+
+## 框架
+
+React
+
+- [UMI3](https://umijs.org/docs)
+- [UMI3 语雀](https://www.yuque.com/umijs/umi/quickstart)
+
+## 代码规范
+
+eslint + prettier + husky + lint-staged
+
+## 前端工程化
+
+1: 输出 component 组件库, 组件库中有对工具函数做单元测试
+2: 使用 eslint + prettier + husky + lint-staged 方案 强制代码规范
+3: 输出 npm 通用包:
+app: 接口请求 Service
+
+## 接口请求
+
+请求库: 使用 umi-request
+
+app: 接口请求 Service
+
+## UI 库
+
+component 业务组件
+component 基础组件
+sr 样式
+
+## 监控
+
+#### aegis 上报
+
+Aegis 是一站式前端监控平台，涵盖了错误监控，资源测速（img, script, css），接口测速，页面性能（首屏时间）。 无需侵入代码，只需引入 SDK 即可自动完成所有监控上报
+
+- [aegis-web-sdk](https://www.npmjs.com/package/aegis-web-sdk)
+- [detect-browser](https://www.npmjs.com/package/detect-browser)
+
+步骤:
+1: 前往 Aegis 管理后台 https://aegis.ivweb.io ， 未注册用户需先通过注册验证
+2: 申请项目，申请完成后得到项目 id， id 在使用 sdk 时候会使用。
+3: 在项目内安装 aegis-web-sdk npm install aegis-web-sdk
+4: 提供了三种方式引入, 但是请务必保证 sdk 在 <head></head> 内, 这样能保证拿到各类数据监控
+5: 项目中采用的是 引入 sdk, 实例化 sdk(在 global.ts 中实例化, 导出, 后面再看)
+6: 接入完成后，即可在 Aegis.ivweb.io 上查看项目数据
+
+## 第三方库使用
+
+react hooks 库: ahooks
+富文本编辑器: braft-editor & braft-extensions & braft-utils
+js 工具函数: lodash-es
+时间: moment
+url 字符串处理: query-string
+装修: react-dnd & react-dnd-html5-backend
+表单: react-hook-form
+动画: react-transition-group
+请求: umi-request
+获取浏览器版本信息: detect-browser(原理 userAgent 代理字符串)
+
+## 兼容
+
+主打 Chrome 浏览器, 不支持 IE
+
+一: 准备一个提示用户升级协议的页面
+二: umi 允许 document.ejs 作为默认的 html 模板, 在 document.ejs 中进行 userAgent 判断(比如 小于 IE11 的用户代理字符串中包含 MSIE, IE 的 Edge 浏览器的用户代理字符串包含 edg|edge, IE11 包含了 TRIDENT)
+三: 当判断是 IE 浏览器时使用 window.location.href 跳转到升级协议的页面
+
+1: public/upgrade.html 升级浏览器提示页面
+
+```upgrade.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>请升级浏览器</title>
+  <style>...</style>
+</head>
+<body>
+
+  <div class="wrap">
+    <div class="center">
+      <p id="browerTip"></p>
+      <p><a id="login" style="color: #5a66ff;text-decoration: none;" href="<%=  %>">返回登录页</a></p>
+      <div>各种浏览器</div>
+    </div>
+  </div>
+  <div class="footer">
+    图片
+  </div>
+
+  <script>
+    // 获取浏览器官方名称
+    var browserName = window.navigator.appName;
+    // 获取浏览器版本
+    var browserVersion = window.navigator.appVersion;
+    // 设置展示文本
+    var browerTip = document.getElementById('browerTip');
+    browerTip.innerText = '您当前的浏览器为：' + browserName + browserVersion;
+    // 当前 host
+    var host = window.location.host;
+    // 该页面部署在 cdn 上, login 跳转替换 cdn 为 admin
+    var publicPath = '//' + host.replace(/^cdn/, 'admin');
+
+    var login = document.getElementById('login');
+    login.href = publicPath + '/login';
+
+  </script>
+</body>
+</html>
+```
+
+```document.ejs 默认的渲染模板
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width">
+  <title><%= context.config.title %></title>
+  // 引入 aegis 监控
+  <script src="监控文件"></script>
+  <script>
+    var upgradeBrowserUrl = '<%= context.config.publicPath %>browser.html';
+    var userAgent = window.navigator.userAgent;
+
+    // 判断是否为<IE11的浏览器
+    var isIE = userAgent.indexOf("MSIE") > -1;
+
+    // 判断是否IE的Edge浏览器
+    var isMicrosoftEdgeBrowser = /edg|edge/i.test(userAgent);
+
+    // 判断是否为IE11
+    var isIE11 = userAgent.toUpperCase().indexOf("TRIDENT/") > -1;
+    if (isIE || isIE11) {
+      window.location.href =  upgradeBrowserUrl;
+    }
+
+    // 获取 Edge 的版本号
+    function getMicrosoftEdgeBrowserVersion() {
+      var version = null;
+      var userAgentLowerCase = window.navigator.userAgent.toLowerCase();
+      if (isMicrosoftEdgeBrowser) {
+        var matches = userAgentLowerCase.match(/(edge|edg)\/([\d\.]+)/);
+        if (matches) {
+          version = matches[2];
+        }
+      }
+      return version;
+    }
+
+    var edgeBrowserVersion = getMicrosoftEdgeBrowserVersion();
+    var isOlderVersion = edgeBrowserVersion && parseFloat(edgeBrowserVersion) < 19;
+
+    if (isMicrosoftEdgeBrowser && isOlderVersion) {
+      window.location.href =  upgradeBrowserUrl;
+    }
+
+  </script>
+  <link rel="icon" type="image/png" href="<%= context.config.publicPath %>favicon.png" />
+</head>
+
+<body>
+  <div id="root"></div>
+
+  // 放cdn上的文件
+  <script src="<%= context.config.publicPath %>moment.min.js"></script>
+</body>
+</html>
+
+```
+
+## 项目架构
+
+.
+├── README.md 项目的开发文档, 协议规范
+├── config 项目的配置文件 很多配置项
+│   ├── config.qa.ts // qa 配置
+│   ├── config.ts // 配置, umi 默认读取
+│   ├── menu.ts // 菜单, 开发可以开启环境中 process.env.mockmenu 配置, 在 loginWrapper 中进行读取, 若开启读取本地, 未开启读取接口
+│   ├── routes 路由
+│   └── routes.ts
+├── docs 文档
+├── mock mock 数据文件
+├── package-lock.json
+├── package.json
+├── public // 此目录下所有文件会被 copy 到输出路径
+│   ├── favicon.png
+│   └── browser.html
+├── src // 所有源码
+│   ├── app.ts
+│   ├── assets
+│   ├── components
+│   ├── config
+│   ├── global.less
+│   ├── global.ts
+│   ├── hooks
+│   ├── layouts
+│   ├── models
+│   ├── pages
+│   ├── services
+│   ├── styles
+│   └── utils
+├── tsconfig.json
+├── typings.d.ts
+└── yarn.lock
+
+## 部署配置文件
+
+process 对象是一个全局变量，提供了有关当前 Node.js 进程的信息并对其进行控制, process.env 属性会返回包含用户环境的对象
+
+- [process](http://nodejs.cn/api/process.html#process_process_env)
+
+1: config.qa.ts 只是式例
+
+```
+// 获取环境 version
+const version = process.env.VERSION;
+// 获取环境 domain 或默认 domain
+const domain = Number(process.env.DOMAIN) !== 0 ? process.env.DOMAIN : 'test.com';
+// 配置 apihost
+const apihost = `//mapi.${domain}`;
+// cdn 资源路径
+const publicPath =
+  Number(version) === 0 ? `//cdn.${domain}/admin/` : `//cdn.${domain}/admin/${version}/`;
+// 导出远程生产配置
+export default {
+  define: {
+    'process.env.env': 'prod',
+    'process.env.mockmenu': false,
+    'process.env.apihost': apihost,
+    'process.env.version': version,
+  },
+  hash: true,
+  publicPath,
+};
+
+```
+
+2: config.qa.ts
+
+```
+export default {
+  define: {
+    'process.env.env': 'qa',
+    'process.env.local': 1,
+    'process.env.apihost': '/proxy',
+    'process.env.mockmenu': false,
+    'process.env.version': process.env.VERSION,
+    'process.env.log': false,
+    'process.env.animation': true,
+  },
+  // 配置请求代理, umi 会在本地起一个服务, 请求 target 的接口地址, 再下发给本地对应的请求, 跨域策略对服务器之间的请求没有限制, 在 umi 的 request 中配置 prefix, 接口前缀
+  proxy: {
+    '/proxy': {
+      target: 'target地址',
+      changeOrigin: true,
+      pathRewrite: { '^/proxy': '' },
+    },
+  },
+  publicPath: '/',
+  mock: false,
+};
+
+```
+
+3: config.ts 文件, umi 默认读取
+
+```
+import { IConfig } from 'umi';
+import routes from './routes';
+import chainWebpack from './chain-webpack';
+
+const config: IConfig = {
+  // 配置路由
+  routes,
+  // 配置别名
+  alias: {
+  },
+  // 启用按需加载, 把构建产物进行拆分, 在需要的时候下载额外的 JS 再执行, 默认是一个js,一个css, 省心, 部署方便, 但是用户初次打开网站会比较慢
+  dynamicImport: { loading: '@/components/biz/LoadingBar' },
+  // 配置标题
+  title: '配置标题',
+  // 提供给代码中可用的变量, 全局可用
+  define: { GLOBAL_CODE: 'test' },
+  // 设置哪些模块可以不被打包，通过 <script> 或其他方式引入，通常需要和 scripts 或 headScripts 配置同时使用
+  externals: {
+    moment: 'window.moment',
+  },
+  // 修改 webpack 配置
+  ...chainWebpack,
+};
+
+export default config;
+
+```
+
+## mock 数据
+
+```
+import { delay } from 'roadhog-api-doc';
+import mockjs from 'mockjs';
+import { Request, Response } from 'express';
+
+const proxy = {
+  'POST /api': (req: Request, res: Response) => {
+    res.send({
+      data: {
+      }
+    });
+  },
+};
+
+export default delay(proxy, 1000);
+
+```
+
+## 部署
+
+node 环境变量
+
+## 路由管理
+
+1: config/routes 文件夹
+
+存放各模块的路由配置文件
+
+```login.ts
+export const login: Route = {
+  path: '/login',
+  component: '../layouts/login/login',
+  routes: [
+    { path: '/login', component: './login/login' },
+    { path: '/login/recover', component: './login/recover/index.tsx' }
+  ],
+};
+```
+
+2: config/routes.ts 文件
+
+统一引入，导出
+
+```
+import { login } from './routes/login';
+const homePage = { path: '/', component: './index' };
+
+const basic = {
+  path: '/',
+  component: '../layouts/default/default',
+  routes: [
+    homePage,
+  ],
+};
+
+const routes: Route[] = [login, basic, { component: './404' }];
+
+export default routes;
+
+```
+
+3: config/config.ts
+
+在 config 文件中配置 routes, umi 会根据 config 文件进行配置
+
+```
+import { IConfig } from 'umi';
+import routes from './routes';
+const config: IConfig = {
+  routes,
+};
+export default config;
+```
+
+项目中有一个存放配置的 config 文件夹，该文件夹下有一个 routes 文件夹, 用来存放各模块的路由配置文件, 每个文件导出一个对象, 每个对象有 path 配置, 比如/login，那包含/login 的路由就会进入, component 配置用来配置外层包裹, routes 数组配置存放具体的路由和页面组件, 在 config 文件夹下还有一个 routes 文件统一对刚才的 routes 文件夹 引入, 导出, 以及 404 页面的配置
+
+## 如何进行远程 debug
+
+- [whistle](https://cloud.tencent.com/edu/learning/course-2605-49877)
+
+使用 whistle 工具, 本地打包, 进行调试
+https://www.cnblogs.com/kunmomo/p/11811458.html
+https://github.com/avwo/whistle
+
+1: 可以本地配置跟现网一样的配置, 开启 source-map
+
+```ts
+const version = process.env.VERSION;
+const domain = "test.com";
+const apihost = `//mapi.${domain}`;
+const publicPath =
+  Number(version) === 0
+    ? `//cdn.${domain}/admin/`
+    : `//cdn.${domain}/admin/${version}/`;
+export default {
+  define: {
+    "process.env.env": "qa",
+    "process.env.apihost": apihost,
+    "process.env.version": version,
+  },
+  hash: true,
+  publicPath,
+  devtool: "source-map",
+};
+```
+
+2: 运行命令，进行本地打包
+
+```js
+npx cross-env VERSION=0105-store UMI_ENV=qa-remote umi build
+```
+
+3: https://github.com/avwo/whistle
+使用 whistle 代理，使用本地打包文件进行调试，实现跟线上一样的环境
+
+4: 使用 whistle 配置规则
+^https://test.com/* file:///Users/dangaohaohao/workspace/01-admin/dist/index.html
+^https://cdn.test.com/admin/0105-store/** file:///Users/dangaohaohao/workspace/01-admin/dist/$1
+
+5: 在本地访问显示域名
+
+自身经验:
+在开发店铺认证需求时, 踩了一个坑
+首先页面有四个 stepper, 也就是四个表单认证页面, 点击下一页进行校验, 当有错误项时进行提示, 没有错误就展示下一页, 开发时很顺利, 部署上去后点击下一页就报错, 然后使用 whitle 模拟生产环境调试时就发现, 是 react-hook-form 表单验证插件的 trigger 方法报错, 这是一个用来触发校验的方法, 他是根据注册的表单 key 去找表单的 ref 获取值进行校验, 但是认证页面其实有很多表单是动态展示的, 也就是有些表单其实是隐藏的, 有可能注册的 key 对于的表单是不存在的, 那 react-hook-form 找不到就报错了, 然后就进行了对应的修改, 改成了四个表单, 使用每个表单的 submit 方法解决。
+
+##
