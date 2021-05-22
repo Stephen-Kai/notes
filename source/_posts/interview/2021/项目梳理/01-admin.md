@@ -72,6 +72,7 @@ url 字符串处理: query-string
 cookies 设置: browser-cookies
 自定义滚动条: react-custom-scrollbars
 店铺装修: react-dnd 实现拖拽后台
+日志: dva-logger
 
 ## 兼容
 
@@ -490,6 +491,12 @@ Token 是服务端生成的一串字符串，以作为客户端请求的一个�
 
 可以进行选择店铺, 用 saasId 标识, 选择好店铺之后要给后端发送请求, 选择了哪个店铺, 然后跳转到概览页面, 概览页面会被一层默认布局包裹(umi 支持的 component), 默认布局中会有通用的侧边栏啊, 头部, 底部啊, ErrorBoundary 错误边界处理啊等, 最外层是 loginWrapper, 会进行鉴权, 查询用户信息的操作, 然后放在 loginContext 中, 这样其他地方比如说侧边栏就可以读取菜单数据进行展示。
 
+## 如何区分环境配置
+
+通过环境变量 UMI_ENV 区分不同环境来指定配置
+
+在终端输入 cross-env UMI_ENV=qa umi dev, umi 就会找存放在 config 目录下的 config.qa.ts 配置文件
+
 ## loginWrapper
 
 context 方案
@@ -551,6 +558,10 @@ context 方案
 ## 数据管理
 
 dva, 在 umi 中集成了
+
+## 日志
+
+dva-logger
 
 ## 素材审核
 
