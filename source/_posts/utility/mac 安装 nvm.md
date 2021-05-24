@@ -1,5 +1,3 @@
-# mac 安装 nvm
-
 1. 打开终端安装，输入
 
 ```
@@ -47,6 +45,27 @@ source .bash_profile
 nvm --version
 // 安装成功
 0.34.0
+```
+
+6. 但是我重新打开终端，又报 command not found: nvm
+
+7. 于是我打开官网，试了试 ~/.zshrc
+
+```
+// 新建文件
+touch ~/.zshrc
+// 打开文件
+open ~/.zshrc
+// 输入
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+// 执行
+source ~/.zshrc
+// 检查
+nvm --version
+// 0.38.0
+// 再次打开终端输入 nvm
+// 安装成功
 ```
 
 参考地址:
