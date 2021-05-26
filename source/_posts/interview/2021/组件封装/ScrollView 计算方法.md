@@ -20,7 +20,7 @@
 1. 首先呢会有一个容器, 展示 children, 然后监听这个容器的滚动事件, 到底部就触发 loadMore 事件
 2. 底部事件是通过 const isBottom = scrollTop + clientHeight + triggerHeight > scrollHeight;
 3. 然后遇到问题一，这个时候可以会触发多次, 于是加了一个 load 的节流阀作为 props, 当发出了请求设置节流阀为 false, 请求回来则设置为 true
-4. 这个时候又遇到一个问题, 由于外部的素材选择器其实是响应式的，并不是固定宽度, 所以在一血屏幕比较大的, 默认设置为 20 张图根本占不满, 那就不具备触发 loadMore 的条件
+4. 这个时候又遇到一个问题, 由于外部的素材选择器其实是响应式的，并不是固定高度, 所以在屏幕比较大的, 默认设置为 20 张图根本占不满, 那就不具备触发 loadMore 的条件
 5. 解决, targetRef.current.offsetHeight < scrollRef.current.offsetHeight 就触发 loadMore 事件
 6. targetRef.current.offsetHeight 是外部实际的图片容器占高, scrollRef.current.offsetHeight 是最外层滚动容易的高度
 7. 那如果数据加载完了，怎么办呢?
