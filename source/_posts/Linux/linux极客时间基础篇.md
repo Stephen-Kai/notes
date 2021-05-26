@@ -1,3 +1,5 @@
+https://blog.csdn.net/weixin_44691775/article/details/117308374
+
 # linux 极客时间基础篇
 
 ## 内核版本

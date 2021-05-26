@@ -273,27 +273,27 @@ chage: 修改用户属性
 
 eg.
 
-useradd yuzhenliu
+useradd xuan
 
-id yuzhenliu
+id xuan
 
-ls /home/yuzhenliu
+ls /home/xuan
 
-ls -a /home/yuzhenliu
+ls -a /home/xuan
 
-tail -10 /etc/passwd(tail -10 /etc/shadow) 在这个文件中包含了 yuzhenliu, 所以在这个系统中有这个用户
+tail -10 /etc/passwd(tail -10 /etc/shadow) 在这个文件中包含了 xuan, 所以在这个系统中有这个用户
 
-passwd yuzhenliu 修改 yuzhenliu 用户的密码
+passwd xuan 修改 xuan 用户的密码
 
 passwd 修改自身用户的密码
 
-userdel -r yuzhenliu 删除 yuzhenliu 用户和它的家目录, 如果不加 -r, 则不会删除家目录
+userdel -r xuan 删除 xuan 用户和它的家目录, 如果不加 -r, 则不会删除家目录
 
-usermod -d /home/yu yuzhenliu 把 yuzhenliu 的家目录放在 /home/yu 里面
+usermod -d /home/yu xuan 把 xuan 的家目录放在 /home/yu 里面
 
 groupadd group1 新建一个 group1 组
 
-usermod -g group1 yuzhenliu 修改 yuzhenliu 用户的组为 group1
+usermod -g group1 xuan 修改 xuan 用户的组为 group1
 
 useradd -g group1 yu 新建一个 yu 用户, 同时加入到 group1 中
 
@@ -314,7 +314,7 @@ visudo 设置需要使用 sudo 的用户(组)
 ### 用户和用户组的配置文件
 
 vi /etc/passwd
-yuzhenliu:x:1000:1000::/home/yuzhenliu:/bin/bash
+xuan:x:1000:1000::/home/xuan:/bin/bash
 用户名:是否需要密码:用户 id(如果改为 0 则拥有 root 用户权限):分组 id::家目录:目录解释器
 
 /etc/shadow
@@ -361,4 +361,3 @@ yuzhenliu:x:1000:1000::/home/yuzhenliu:/bin/bash
 1. x 进入目录
 2. rx 显示目录内的文件名
 3. wx 修改目录内的文件名
-
