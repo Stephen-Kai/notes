@@ -255,4 +255,46 @@ ctrl v : 块可视模式
 
 d: 删除
 
-####
+#### 用户和用户组管理及密码管理
+
+##### 用户管理常用命令
+
+useradd: 新建用户
+
+userdel: 删除用户
+
+passwd: 修改用户密码
+
+usermod: 修改用户属性
+
+chage: 修改用户属性
+
+可以根据 id 用户名来确定是否有某个用户
+
+eg.
+
+useradd yuzhenliu
+
+id yuzhenliu
+
+ls /home/yuzhenliu
+
+ls -a /home/yuzhenliu
+
+tail -10 /etc/passwd(tail -10 /etc/shadow) 在这个文件中包含了 yuzhenliu, 所以在这个系统中有这个用户
+
+passwd yuzhenliu 修改 yuzhenliu 用户的密码
+
+passwd 修改自身用户的密码
+
+userdel -r yuzhenliu 删除 yuzhenliu 用户和它的家目录, 如果不加 -r, 则不会删除家目录
+
+usermod -d /home/yu yuzhenliu 把 yuzhenliu 的家目录放在 /home/yu 里面
+
+groupadd group1 新建一个 group1 组
+
+usermod -g group1 yuzhenliu 修改 yuzhenliu 用户的组为 group1
+
+useradd -g group1 yu 新建一个 yu 用户, 同时加入到 group1 中
+
+su - : 切换用户并且把当前的环境进行切换
