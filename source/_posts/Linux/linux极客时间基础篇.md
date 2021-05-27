@@ -68,9 +68,9 @@ Kernel driver not installed (rc=-1908) Make sure the kernel module
 1. 点击分区, 安装默认的自动分区(一定要保证现有数据的安全), 点击安装
 2. 软件选择 -> GNOME 桌面(图形桌面) -> 安装(我没有这一步)
 3. 开始安装(下面进度条显示安装)
-4. 设置 root 密码: yuzhenliu
+4. 设置 root 密码: xuan
 5. 完成配置, 点击重启
-6. 登录(root -> yuzhenliu)
+6. 登录(root -> xuan)
 7. 发现我没有安装图形桌面
 
 ## 如果安装了图形界面
