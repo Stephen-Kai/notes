@@ -2,9 +2,11 @@
 
 ## 1. 如何设计 React Hook & React Hook 的好处 & 解决了什么问题 & 常用的 react hook 以及他 的使用场景?
 
-#### 常用的 react hook 以及他 的使用场景?
-
+https://juejin.cn/post/6844904090032406536
+https://zhuanlan.zhihu.com/p/92211533
 https://segmentfault.com/a/1190000038878068
+
+#### 常用的 react hook 以及他 的使用场景?
 
 1. useState
 
@@ -141,6 +143,8 @@ ref 对象在整个生命周期内保持不变，可以通过修改 ref 的 curr
 ###### 自定义 Hook 设计:
 
 1.  自定义 Hook 是一个函数，其名称必须以 “use” 开头，这样 React 自动检查你的 Hook 是否违反了 Hook 规则
+
+#### React Hook 原理?
 
 ## 3. 有了解 React Fiber 吗?
 
