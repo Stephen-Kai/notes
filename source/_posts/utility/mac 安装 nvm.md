@@ -70,3 +70,23 @@ nvm --version
 
 参考地址:
 [nvm 官方](https://github.com/nvm-sh/nvm)
+
+nvm 常用命令:
+
+nvm install ## 安装指定版本，可模糊安装，如：安装 v4.4.0，既可 nvm install v4.4.0，又可 nvm install 4.4
+
+nvm uninstall ## 删除已安装的指定版本，语法与 install 类似
+
+nvm use ## 切换使用指定的版本 node
+
+nvm ls ## 列出所有安装的版本
+
+nvm ls-remote ## 列出所以远程服务器的版本（官方 node version list）
+
+nvm current ## 显示当前的版本
+
+nvm alias ## 给不同的版本号添加别名
+
+nvm unalias ## 删除已定义的别名
+
+nvm reinstall-packages ## 在当前版本 node 环境下，重新全局安装指定版本号的 npm 包
