@@ -48,6 +48,7 @@ const promiseChain = promiseCreatorList.reduce((prev, cur) => {
 
 // reduce 可以接收第二个参数, 其实我们可以给它一个空的 Promise 实例, 那这样在迭代过程中就可以保证都是 Promise 实例
 const promiseChain = promiseCreatorList.reduce((prev, cur) => {
+  // .then 本身就接收到一个函数, return 一个 Promise
   return prev.then(cur);
 }, Promise.resolve());
 
@@ -58,3 +59,9 @@ promiseChain.then(() => {
 ```
 
 ## 变种形式
+
+### 加上域值问题, 比如列表里面有很多 Promise 在执行, 我希望同时执行 2 个这样的 Promise 的函数
+
+#### 如果执行完了不继续填充
+
+#### 如果执行完了进行填充
