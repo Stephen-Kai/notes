@@ -16,7 +16,9 @@
 
 ```js
 // module.js
-const hello = "please tell me your name ～";
+module.exports = {
+  hello: "please tell me your name ～",
+};
 
 // require.js
 // 一开始呢, 只有两种作用域, 全局作用域 & 函数作用域
