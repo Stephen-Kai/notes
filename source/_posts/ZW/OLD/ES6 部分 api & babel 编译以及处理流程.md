@@ -122,6 +122,9 @@ Object.prototype[Symbol.iterator] = function* () {
 
 ## babel(重点内容)
 
+ast 一定要遵循 estree 吗？
+estree 其实是一个约定俗成的规范, 那肯定不是说强制的, 只要你能生成 ast, 并且根据这个 ast 可以生成代码就可以, 只是很多工具会做的比较相似, 这样可能 babel 处理完可以跑下 webpack, 跑下 webpack 可能跑下别的工具等等.
+
 ### 过程
 
 主要是会编译成 AST (Abstract Syntax Tree)
@@ -488,6 +491,87 @@ function parser(input) {
 // "add(2,subtract(40,2));"
 ```
 
+### 手写一个简单的 babel 插件
+
+babel 插件做的事情其实就是 DFS 的 handle 处理函数, 遇到什么需要去做什么处理.
+
+1. 新建配置文件 `touch .babelrc`
+2. 安装 babel 插件 `npm init && npm i @babel/core @babel/cli @babel/types -D`
+3. 新建插件文件 `touch plugin.js`, 对 babel 来说, 只要导出一个函数, 就是一个合法的插件
+4. 在配置文章中配置, `{ "plugins": ["./plugin"] }`, 指向刚刚创建的插件
+5. 写插件
+
+```js
+// 对一些类型做一些处理, 比如把 + -> -
+module.exports = function ({ types: t }) {
+  return {
+    visitor: {
+      BinaryExpression(path) {
+        path.node.operator = "-";
+      },
+    },
+  };
+};
+
+// input的内容
+1 + 1;
+
+// output的内容
+1 - 1;
+
+// 获取到 process.env, 把它替换成 shell 命令中输入的
+module.exports = function ({ types: t }) {
+  return {
+    visitor: {
+      MemberExpression(path) {
+        if (path.get("object").matchesPattern("process.env")) {
+          const key = path.toComputedKey();
+          if (t.isStringLiteral(key)) {
+            path.replaceWith(t.valueToNode(process.env[key.value]));
+          }
+        }
+      },
+    },
+  };
+};
+
+// input的内容
+if (process.env.NODE_ENV === "production") {
+  console.log("hello world");
+}
+
+// output的内容
+
+// 执行 npm run build, 由于 shell 中没有输入, 于是 process.env = undefined
+if (undefined === "production") {
+  console.log("hello world");
+}
+
+//  执行 NODE_ENV=production npm run build, 那 process.env 会是 production, 即以下代码, 其实以下代码为 true, 那在压缩的时候会把 if 语句块删除
+if ("production" === "production") {
+  console.log("hello world");
+}
+```
+
+6. 在 `package.json` 中配置 `scripts` 命令`"build": "babel index.js -o output.js"`
+7. `shell` 中执行 `npm run build` 可以看到插件生效了
+8. 如果需要在插件中进行一些配置, 定制化的一些操作, 那可以在 plugins 中传入一个二维数组, 第一个参数为插件, 第二个参数为配置项
+
+```js
+{
+  "plugins": [
+    [
+      "./plugin",
+      {
+        "operator": "*"
+      }
+    ]
+  ]
+}
+```
+
+9.
+
 ## 参考
 
 [阮一峰老师 ES6 入门](https://es6.ruanyifeng.com/)
@@ -495,3 +579,5 @@ function parser(input) {
 [astexplorer](https://astexplorer.net/)
 [estree](https://github.com/estree/estree)
 [json.cn](http://www.json.cn/)
+[babel 文档](https://www.babeljs.cn/docs/)
+[如何开发一个 babel 插件, 看看看起来](https://github.com/jamiebuilds/babel-handbook/blob/master/translations/zh-Hans/plugin-handbook.md)
