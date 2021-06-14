@@ -127,6 +127,27 @@ function MyComponent() {
 }
 ```
 
+```js
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import React, { Suspense, lazy } from "react";
+const Home = lazy(() => import("./routes/Home"));
+const UserManage = lazy(() => import("./routes/UserManage"));
+const AssetManage = lazy(() => import("./routes/AssetManage"));
+const AttendanceManage = lazy(() => import("./routes/AttendanceManage"));
+const App = () => (
+  <Router>
+    <Suspense fallback={<div>Loading...</div>}>
+      <Switch>
+        <Route exact path="/" component={Home} />
+        <Route path="/userManage" component={UserManage} />
+        <Route path="/assetManage" component={AssetManage} />
+        <Route path="/attendanceManage" component={AttendanceManage} />
+      </Switch>
+    </Suspense>
+  </Router>
+);
+```
+
 ## ErrorBoundary 错误边界
 
 ### componentDidCatch
@@ -162,3 +183,4 @@ static getDerivedStateFromError(error) {
 # 文章推荐
 
 [React Hooks 原理](https://zhuanlan.zhihu.com/p/88135310?utm_source=qq&utm_medium=social&utm_oi=998881530932043776)
+[Lazy-Suspense](https://www.yuque.com/u1867998/kb/ezt9q1)
