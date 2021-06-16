@@ -48,7 +48,7 @@
 6. useCallback(缓存函数, 应用场景: 把父组件的方法传给子组件, 函数不变, 保持引用不变, 子组件可以做一些优化, 减少不必要的渲染)
 7. useMemo(缓存值, 有点像 Vue 的 computed 计算属性, 当依赖值变化才会变化, 对于一些计算量比较大的具有优化效果)
 8. React.memo(相当于 shouldComponentUpdate, 和 pureComponent), 将当前的 props 跟之前的 props 进行浅比较, 如果没有变化, 就不会更新
-9.
+9. useSelector
 
 ## 自定义 Hook 实现
 
