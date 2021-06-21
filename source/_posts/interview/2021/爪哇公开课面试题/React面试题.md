@@ -6,25 +6,30 @@
 
 ### 为什么要设计 react fiber 这个架构呢?
 
-为了使 react 渲染的过程中可以被中断, 可以将控制权交还给浏览器, 可以让位给高优先级的任务, 浏览器空闲后再恢复计算.
+而 react fiber 的核心目的就是为了使 React 渲染的过程可以被中断，可以将控制权交回浏览器，让位给高优先级的任务，浏览器空闲后再恢复渲染。
+这样的话高性能要求的一些 dom 计算在设备上就不会显得很卡顿, 而是会一帧一帧的有规律的执行, 看起来就十分流畅.
+
 (比如之前一段计算量比较大的 js 代码, 可能要全部执行完了才会执行下一个任务, 那长时间不渲染, 可能浏览器会有点卡顿, 那 fiber 就可以把任务分块, 放在每帧中)
 
 #### 假设
 
-```js
-const tasks = []; // 那整整阻塞 100s, 只考虑同步的
+讲 react fiber 之前, 咱们先来看一下普通的函数如何执行?
 
+咱们用 while 来示例, 可以看出一旦开始, 直到 task 清空, 期间的行为咱们完全无法控制.
+
+```js
+const tasks = [];
 function run() {
   let task;
   while ((task = tasks.shift())) {
-    execute(task); // 10s
+    execute(task);
   }
 }
 ```
 
 #### generator 中断 & 恢复
 
-es6 中提供了 generator, 可以中断 & 恢复
+而如果我们用 generator 来写, 其实就能在函数执行时通过 yeild 中断, 通过 next 去恢复.
 
 yeild 中断
 next 恢复
@@ -35,42 +40,67 @@ const tasks = []; // 那整整阻塞 100s, 只考虑同步的
 function* run() {
   let task;
   while ((task = tasks.shift())) {
+    // 判断是否有高优先级事件需要处理, 有的话让出控制权
     if (hasHighPriorityTask()) {
-      // 是否有高优先级的任务, 有, 暂停
       yeild;
     }
-    execute(task); // 10s
+
+    // 处理完高优先级事件后，恢复函数调用栈，继续执行...
+    execute(task);
   }
 }
 ```
 
 #### 为什么不直接使用 generator 来实现中断暂停呢?
 
+而 react fiber 的核心目的就是为了使 React 渲染的过程可以被中断，可以将控制权交回浏览器，让位给高优先级的任务，浏览器空闲后再恢复渲染。
+这样的话高性能要求的一些 dom 计算在设备上就不会显得很卡顿, 而是会一帧一帧的有规律的执行, 看起来就十分流畅.
+
+那么有几个问题.
+
+1. generator 有类似的功能, 为什么不直接使用?
+
 首先所有的功能都是在之前的基础上叠加的.
 
-react issues
+react 开发人员在 git issue 里回答过这个问题. 总结起来主要的就是两点:
 
-1. 要把涉及到的所有代码都包装成 generator 的形式, 非常麻烦, 工作量非常大
-2. generator 内部是有状态的
+- 要使用 generator 的话, 需要将涉及的所有代码都包装成 generator \* 的形式, 非常麻烦, 工作量非常大
+- generator 内部是有状态的, 很难在恢复执行的时候获取之前的状态.
 
 ```js
 function* doWork(a, b, c) {
-  const x = yeild doWorkA();
-  const y = yeild doWorkB();
-  const c = yeild doWorkC(x, y);
+  var x = doExpensiveWorkA(a);
+  yield;
+  var y = x + doExpensiveWorkB(b);
+  yield;
+  var z = y + doExpensiveWorkC(c);
+  return z;
 }
 ```
 
-如果已经执行了 a, b, 还未执行 c,而 b 被更新了, 那在新的时间分片里, 我们只能使用原来的 x, y 结果
+比如这段代码, 如果想在多个时间分片内执行, 而当我们在之前的时间片内已经执行完了 doExpensiveWorkA 和 doExpensiveWorkB, 还没执行 doExpensiveWorkC, 但是此时 b 被更新了. 那么在新的时间分片里, 我们只能沿用之前获取到的 x 和 y 的结果, 来执行 doExpensiveWorkC. 而我们无法获取到更新后的 b 的值, 再来继续做 doExpensiveWorkC 的计算.
 
-#### 如何判断是否有高优先级任务
+#### 怎么判定现在有更高优先级的任务？
 
+而我们真正的代码中其实无法真正的判断是否有更高优先级的任务, 只能来约定一个合理的执行时间, 当过了这个执行时间后任务仍没有执行完成的话, 就中断当前任务. 并且将控制权交还给浏览器.
+
+而正常情况下, 我们一般是按照每秒 60 帧, 也就是每帧 16ms 的刷新是人眼能感知的最低限度.
+
+然而浏览器恰好提供了这样的方法, requestIdleCallback。
+
+https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestIdleCallback
+
+requestIdleCallback 是让浏览器在'有空'的时候就执行我们的回调，这个回调会传入一个参数，表示浏览器有多少时间供我们执行。
+
+那么说了半天, 都是要在浏览器有空的时候执行, 那浏览器什么时候才有空呢？
+
+<!--
 1. 当前 js 环境没办法判断是否有高优先级任务
 2. 只能约定一个合理的时间, 当超过了这个时间, 如果这个任务还没有执行完, 中断当前任务, 将控制权交还给浏览器.
 
 每秒 60 帧, 每帧大约 16 ms
 
-requestIdleCallback 让浏览器在有空的时候执行回调, 这个回调会传入参数, 表示浏览器有多少时间供我们执行任务
+requestIdleCallback 让浏览器在有空的时候执行回调, 这个回调会传入参数, 表示浏览器有多少时间供我们执行任务 -->
 
 #### 那浏览器什么时候有空呢?
 
@@ -233,7 +263,7 @@ onClick={this.handleClick.bind(this)}
 
 #### 手写 useEffect
 
-## 安利
+## 安利字节
 
 1. 三餐免费
 2. 公司附近范围内房租免费
@@ -262,3 +292,7 @@ onClick={this.handleClick.bind(this)}
 5. 整个面试才 25 分钟
 
 我觉得常规的时间是 40 - 1 个小时, 如果只有 25 分钟, 那可能够呛
+
+6. 20 届手写不好, 算法不好, 还有救吗?
+
+有救的很, 只要你好好学.
